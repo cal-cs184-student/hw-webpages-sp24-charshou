@@ -1,7 +1,199 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Homework 1 index.html here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184/284A Rasterizer</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184/284A: Computer Graphics and Imaging, Spring 2024</h1>
+<h1 align="middle">Homework 1: Rasterizer</h1>
+<h2 align="middle">Charlie Shou</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>In this homework, I built out a rasterizer that is capable of rendering images from simplified SVG files. I started out rendering simple, single color triangles, which allowed me to produce simple images by taking samples from inside of a triangle. This was extended by implementing supersampling, allowing me to smooth out the jagged edges and corners that were produced. I continued with adding transforms and barycentric coodinates, allowing me to create more complex shapes and interpolate gradients from the corners of the triangles I draw. The last parts of the homework allowed me to implement texture making, which combined many of the previous parts to allow me to map given textures into different shapes. I thought this project was super interesting because it allowed me conceptualize concepts that we learned in class, such as how supersampling would actually be implemented in code.</p>
+
+<h2 align="middle">Section I: Rasterization</h2>
+
+<h3 align="middle">Part 1: Rasterizing single-color triangles</h3>
+
+<p>The first part of the project, we implemented a rasterizer that is able to render simple, single color triangles. This involved first finding the bounding box of the triangle that I wanted to draw. In order to do this, I searched in a box defined by the min x, min y and max x, max y, which defines the bounding box of the triangle. Doing so, I ensure that the rasterizer is not searching through pixels that are definitely not inside of the triangle. With the bounding box, I also needed to figure out which pixels existed within the trangle. To do this, I use the three line test that was described in lecture, which compared the dot product between the point and a normal vector to the line. If the result is negative, then it is outside of the edge defining the triangle, otherwise it is in or on the edge of the triangle. This test would be performed on all three edges. One case I needed to account for was that this test only worked if the points were in counter clockwise order, so I used the cross product between two of the points to determine if that was the case. If not, I just swapped two of the points. Results of test4 are shown below. As you can see from the pixel inspector, there are visible jagged edges that aren't smoothed out.</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/1a.png" align="middle" width="400px"/>
+        <figcaption align="middle">test4.svg image</figcaption>
+      </td>
+      <td>
+        <img src="images/1b.png" align="middle" width="400px"/>
+        <figcaption align="middle">Pixel Inspector</figcaption>
+      </td>
+    </tr>
+    <br>
+  </table>
+</div>
+
+
+<h3 align="middle">Part 2: Antialiasing triangles</h3>
+
+<p>For the second part of the project, I added supersampling to help smooth out the edges of the triangles. At a high level, I took subsamples of each pixel and added them to a scaled up version of the sample buffer. After filling the sample buffer, I averaged out the values for each pixel and put them in the framebuffer. To implement this, I added additional loops within the rasterize triangle function to sample additional values in the x and y direction based off of the sampling rate. Since we are taking additional samples, the size of our buffer went from w x h to (w * sqrt(sample_rate)) x (h * sqrt(sample_rate)), and this change was added everywhere where we were resizing our buffer. Since we have additional space in the sample buffer, the new mapping for pixel x, y with subsample i, j, would now be sample_buffer[(y * width + x) * (sample_rate_grid * sample_rate_grid) + i * sample_rate_grid + j]. I still used the same algorithm to determine if the sample is within the triangle, except now we are directly inserting into the sample buffer and averaging when we resolve_to_framebuffer. Below are the results. As you can see, when we observe the skinny pink triangle, we see jagged corners where there seems to be a disconnected pixel when we don't have supersampling because the areas in between aren't captured as being within the triangle. But as we increase the supersampling rate, the corner smooths out and the floating pixel disappears because be don't just consider the pixel by itself, but also samples within the pixel.</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/2a.png" align="middle" width="400px"/>
+        <figcaption align="middle">Supersample rate 1 per pixel</figcaption>
+      </td>
+      <td>
+        <img src="images/2b.png" align="middle" width="400px"/>
+        <figcaption align="middle">Supersample rate 4 per pixel</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/2c.png" align="middle" width="400px"/>
+        <figcaption align="middle">Supersample rate 9 per pixel</figcaption>
+      </td>
+      <td>
+        <img src="images/2d.png" align="middle" width="400px"/>
+        <figcaption align="middle">Supersample rate 16 per pixel</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+
+<h3 align="middle">Part 3: Transforms</h3>
+
+<p>For this part of the project, I added the ability to perform transforms on the objects that we draw. This part of the project was fairly simple since I just added the matrix transforms that we learned in class. For my robot, I had him do the splits, which equated to rotating the legs 90 degrees. This rotation had to be performed at the very end after the legs had already been translated, otherwise they would have been rotated with respect to the knee.</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/3a.png" align="middle" width="400px"/>
+        <figcaption align="middle">Robot doing the splits</figcaption>
+      </td>
+    </tr>
+    <br/>
+  </table>
+</div>
+
+<h2 align="middle">Section II: Sampling</h2>
+
+<h3 align="middle">Part 4: Barycentric coordinates</h3>
+
+<p>For this part of the project, I rasterized an interpolated color triangle using barycentric coordinates. These coordinates are defined as alpha, beta, and gamma values that define, at a high level, how much of each color from each corner that we want to blend. This means that the close we are to one of the corners, the more of that color that we will end up using. This can be seen in the triangle below. If the alpha value corresponds to the corner in the left, pixel values closer to that corner will have a greater alpha value and therefore be more red. The barycentric coordinates are derived as was described in lecture, where each value is proportional to the distance from each corner and normalized to that the sum of all of them is equal to 1. The results are below</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/4a.png" align="middle" width="400px"/>
+        <figcaption align="middle">Triangle with gradients</figcaption>
+      </td>
+      <td>
+        <img src="images/4b.png" align="middle" width="400px"/>
+        <figcaption align="middle">Color circle</figcaption>
+      </td>
+    </tr>
+    <br>
+  </table>
+</div>
+
+<h3 align="middle">Part 5: "Pixel sampling" for texture mapping</h3>
+
+<p>For this part of the project, I implemented pixel sampling to perform texture mapping. This enabled me to map textures onto specific shapes that may not be the original shape of the texture. Using the coordinates of the display shape, we can interpolate the uv coordinates of the texture similar to what we did in part 4. Using the uv coordinates, we can find the exact location of the texel that we want to map. However, the issue is that most of the time, that coordinate will be between pixel values, we we can choose two different ways to sample the pixels: nearest neighbor and bilinear interpolation. Nearest neighbor just uses the pixel value of the closest neighbor to our uv coordinate, while bilinear interpolation estimates what the value of the pixel would be by interpolating from the four closest pixels. The results of each at different sampling rates are below. As you can see, bilinear is notibly smoother, with more gradual shifts in color between each pixel. This is the most noticeable with a supersample rate of 1. In this case, there is no interpolation at all for nearest neighbor, which can be seen in the image below. All pixels in the final images are pixels from the original texture. The bilinear image on the other hand has a gradual change in the pixels, with far fewer jagged edges even with no supersampling.</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/5a.png" align="middle" width="400px"/>
+        <figcaption align="middle">Nearest neighbor, 1 per pixel</figcaption>
+      </td>
+      <td>
+        <img src="images/5b.png" align="middle" width="400px"/>
+        <figcaption align="middle">Nearest neighbor, 16 per pixel</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/5c.png" align="middle" width="400px"/>
+        <figcaption align="middle">Bilinear, 1 per pixel</figcaption>
+      </td>
+      <td>
+        <img src="images/5d.png" align="middle" width="400px"/>
+        <figcaption align="middle">Bilinear, 16 per pixel</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+<h3 align="middle">Part 6: "Level sampling" with mipmaps for texture mapping</h3>
+
+<p>For this part of the project, I implemented level sampling to sample from mipmaps based off of the sampling rate of the screen. This was done by calculating the sampling rate at the current location by taking the dx and dy of the uv coordinates and determining the level based off of the log of the norm. If we are sampling very frequencly, then we would sample at a lower mipmap level (or a higher resolution). If we don't sample frequently, then we would sample from a lower resolution image. When performing level sampling, zero level is the most efficient since we don't need to calculate any additional information to find the level. Nearest neighbor level sampling is the next most intensive speed/memory wise because we need to be able to calculate the closest level, which takes computation power. Bilinear level sampling is the most intensive because we need to take samples from two levels as well as interpolate them. Of the pixel sampling methods, bilinear is the most intensive because we need to interpolate from 4 different pixel values, whereas nearest neighbor we just take the closest value. For each of the methods, the more intensive methods always produce better, more antialiased results because we are considering more levels/pixel values in our interpolation. Below are the results of my own png that showcase this. As we use more sophistocated methods for sampling, the antialiasing is reduced. Trilinear sampling is the best quality.</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/6a.png" align="middle" width="400px"/>
+        <figcaption align="middle">Zero level, nearest neighbor pixel sampling</figcaption>
+      </td>
+      <td>
+        <img src="images/6b.png" align="middle" width="400px"/>
+        <figcaption align="middle">Zero level, bilinear sampling</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/6c.png" align="middle" width="400px"/>
+        <figcaption align="middle">Nearest neighbor level, nearest neighbor pixel sampling</figcaption>
+      </td>
+      <td>
+        <img src="images/6d.png" align="middle" width="400px"/>
+        <figcaption align="middle">Nearest neighbor level, bilinear sampling</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/6e.png" align="middle" width="400px"/>
+        <figcaption align="middle">Bilinear level, bilinear sampling</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+</body>
 </html>
