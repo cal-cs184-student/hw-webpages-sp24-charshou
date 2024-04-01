@@ -1,0 +1,73 @@
+<html>
+	<head>
+	</head>
+	<body>
+		<h2>Final Project</h2>
+        <h3>Title</h3>
+        <p>Water Droplet Simulation</p>
+		<h3>Summary</h3>
+        <p>We aim to model single or multiple water drops falling into a puddle of water with realistic lighting and with physical simulation</p>
+        <h3>Team Members</h3>
+        <ul>
+            <li>Sebastian Zhao</li>
+            <li>Charlie Shou</li>
+            <li>Jin Wei Wong</li>
+            <li>Michael Wiradharma</li>
+        </ul>
+        <h3>Problem Description</h3>
+        <ul>
+            <li>Context and Importance: There are scenes in video games and movies where there is weather and rain falling into puddles. For more realism, the fluid dynamics of the water from the rain should be modeled. We are aiming to provide a working version of these fluid dynamics in a toy example – a box filled with water and single or multiple drops of water falling in.</li>
+            <li>Goal: is to realistically simulate drops of water into a water puddle in real-time.</li>
+            <li>Challenges and Approach: There are several challenges and problems that we would need to solve if we were to create this project:
+                <ul>
+                    <li>Simulating the physics that would be required to create a realistic rendering</li>
+                    <li>Simulating how multiple waves would interact with each other</li>
+                    <li>Realistically rendering the lighting and how it would change with wave interactions.</li>
+                    <li>Figuring out how to model reflections on water surfaces</li>
+                    <li>Accelerating our simulation, potentially using CUDA   </li>                 
+                </ul>
+            </li>
+        </ul>
+        <h3>Goals and Deliverables</h3>
+        <ul>
+            <li>Results: We will create videos that demonstrate the water droplet falling into the water, showing the waves and ripples it creates in the puddle, as well as a working implementation of these dynamics generally to simulate any other scenes.</li>
+            <li>Interactive demo: If we manage to accelerate our simulation enough and are able to make it real-time, we will let users click on the top of the box to drop a water droplet from that spot. </li>
+            <li>Metrics: Since there is no exact ground truth for our specific initial state, we plan on asking for subjective ratings from people on the realism of the scene.</li>
+            <li>What questions do you plan to answer with your analysis?
+                <ul>
+                    <li>What are the challenges developers/researchers face when creating realistic physics simulators?</li>
+                    <li>What challenges are associated with working with simulation software?</li>  
+                </ul>
+            </li>
+            <li>What we plan to deliver:
+                <ul>
+                    <li>An implementation of realistic water simulation using particle physics and fluid dynamics inspired by the physical interactions of water. </li>
+                    <li>The focus will be on including water droplets and how that will affect bodies of water and the combined ripple effects from each drop. </li>  
+                    <li>We hope to simulate renders characteristic on the volume of the water droplet as well as their velocities and number of droplets on the surface. </li>
+                </ul>
+            </li>
+            <li>What you hope to deliver:
+                <ul>
+                    <li>Our end goal is to create realistic simulations of weather effects, such as rain, hail, or snow. Additionally, we want to include realistic interactions between such particles with surrounding objects and themselves.</li>
+                    <li>We hope to be able to accelerate the rendering of the simulation using CUDA (or other software) </li>  
+                    <li>We hope to be able to render our simulation in real time. </li>
+                </ul>
+            </li>
+        </ul>
+        <h3>Schedule </h3>
+        <ul>
+            <li>Week 1: Obtain a good grasp of the fluid dynamics and physics based equations used in rendering fluids (water). </li>
+            <li>Week 2: Write particle physics simulation code for the fluid dynamics and integration. </li>  
+            <li>Week 3: Create the scene, test and debug! </li>  
+            <li>Week 4: Work on acceleration and lighting, real time simulations, other reach goals.</li>
+        </ul>
+        <h3>Resources</h3>
+        <ul>
+            <li>Computing platform: C++ and our laptop </li>
+            <li>Software: 184 implementation of OpenGL </li>  
+            <li>Hardware: CUDA </li>  
+            <li><a href="https://experiments.withgoogle.com/webgl-water-simulation">WebGL Water Simulation by Evan Wallace - Experiments with Google</a></li>
+            <li><a href="https://en.wikipedia.org/wiki/Lattice_Boltzmann_methods">Lattice Boltzmann methods - Wikipedia</a></li>
+        </ul>
+	</body>
+</html>
